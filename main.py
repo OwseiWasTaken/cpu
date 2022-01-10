@@ -167,14 +167,11 @@ include "cpu"
 func main() {
 InitRand()
 InitGetCh()
-var Code []Op = []Op{
+CPU.CODE = []Op{
 %s
 }
-CPU.CODE = Code
 
-var CL int = len(Code)
-
-for ;CPU.ADDR<CL;{
+for {
 CPU.NextTick()
 }
 exit(0)

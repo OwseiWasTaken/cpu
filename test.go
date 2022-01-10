@@ -1,7 +1,7 @@
 package main
 
 include "gutil"
-include "cpu"
+include "./cpu"
 
 // OWEN worker
 // test.go is used to test cpu.go!
@@ -14,7 +14,7 @@ include "cpu"
 func main() {
 	InitRand()
 	InitGetCh()
-	var Code []Op = []Op{
+	CPU.CODE = []Op{
 		Op{O_MEM, false, 10},	   // 0
 		Op{O_INT2PRT, true, 0},    // 1
 		Op{O_DBGPRT, false, 0},    // 2
@@ -22,12 +22,9 @@ func main() {
 		Op{O_DBGPRT, false, 0},    // 4
 		Op{O_EXIT, false, 0},	   // 5
 	}
-	CPU.CODE = Code
 	printf("%d ops\n", OP_LEN)
 
-	var CL int = len(CPU.CODE)
-
-	for ;CPU.ADDR<CL;{
+	for {
 		CPU.NextTick()
 	}
 	exit(0)
