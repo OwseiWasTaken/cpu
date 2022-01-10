@@ -1,6 +1,7 @@
 
 const (
 	// stack (+LDA)
+	O_POP_LDA=  iota
 	O_POP	 =	iota
 	O_PUSH	 =	iota
 
@@ -56,8 +57,9 @@ const (
 
 	// &*
 	O_INT2PRT = iota
+	O_PRT2INT = iota
 
-	// reader
+	// test helper
 	I_MakeLabel=iota
 
 	// extra

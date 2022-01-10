@@ -57,8 +57,6 @@ func MakeCpu() *Cpu {
 
 var CPU *Cpu = MakeCpu()
 
-include "errs"
-
 func (c *Cpu) Print() {
 	print("\n")
 	if (c == CPU) {
@@ -67,12 +65,14 @@ func (c *Cpu) Print() {
 		printf("Extra Cpu:\n")
 	}
 
+	printf("slen: %d\n", c.STACK_LEN)
 	if (c.STACK_LEN > 51) {
 		printf("stack: %v, ...\n", c.STACK[:50])
 	} else {
 		printf("stack: %v\n", c.STACK)
 	}
 
+	printf("mlen: %d\n", len(c.MEM))
 	if (len(c.MEM) > 51) {
 		printf("mem: %v, ...\n", c.MEM[:50])
 	} else {
@@ -81,10 +81,19 @@ func (c *Cpu) Print() {
 
 	printf("@: %d\n", c.ADDR)
 	printf("t: %d\n", c.TICK)
-	printf("a: %d\n", c.ACC)
-	print("labels{\n")
-	for id, line := range c.LABELS {
-		printf("  %d:%d\n", id, line)
+	printf("ac: %d\n", c.ACC)
+	if ( len(c.LABELS)>0 ) {
+		print("labels{\n")
+		for id, line := range c.LABELS {
+			printf("  %d:%d\n", id, line)
+		}
+		print("}\n")
+	}
+	if ( streamcount>0 ) {
+		print("streams{\n")
+		for id, name:= range sstreams{
+			printf("  %d:%s\n", id, name)
+		}
 	}
 	print("}\n")
 	print("flags{\n")
@@ -119,30 +128,38 @@ type Op struct {
 }
 
 include "ops"
+include "errs"
+
+var sstreams map[int]string = map[int]string{
+	0:"stdout",
+	1:"stderr",
+}
 var streams map[int]*bufio.Writer = map[int]*bufio.Writer{
 	0:stdout,
 	1:stderr,
 }
 
-// TODO
-// array from MEM[LDA .. LDB] -+-> MEM (?as *)
-// reader -> c.MakeLabel("name", id, addr) then remove label lines from isource
+var streamcount = 1
+
+var fd *FILE
+var err error
+var arg interface{}
+var OP Op
 
 func (c *Cpu) AddLabel( line int ) {
 	c.LABELS[len(c.LABELS)] = line
 }
 
+//TODO:
+//  use E_ stuff
 func (c *Cpu) RunAsmCode() {
-	var OP Op = c.CODE[c.ADDR] // Op struct
-	var arg interface{}
+	OP = c.CODE[c.ADDR] // Op struct
+	arg = OP.Arg
 	if (OP.ArgType) {
 		arg = c.MEM[(OP.Arg).(int)]
-	} else {
-		arg = OP.Arg
 	}
 
 	switch (OP.Op) {
-
 		// syscall
 		case O_WRITE_LRI:
 			fprintf(streams[c.REGS.LDS], c.REGS.LRI)
@@ -150,18 +167,32 @@ func (c *Cpu) RunAsmCode() {
 			fprintf(streams[c.REGS.LDS], fs("%v", arg))
 		case O_FLUSH:
 			streams[c.REGS.LDS].Flush()
+		case O_OPEN:
+			streamcount++
+			fd, err = fmake((arg).(string))
+			if (err != nil) {
+				c.Print()
+				panic(err)
+			}
+			streams[streamcount] = fwriter(fd)
+			sstreams[streamcount] = (arg).(string)
+			if (OP.ArgType) {
+				c.REGS.LDS = streamcount
+			}
 		case O_EXIT:
-			stdout.Flush()
-			stderr.Flush()
 			exit((arg).(int))
 
 		// stack
 		case O_PUSH:
 			c.STACK_LEN++
 			c.STACK = append([]interface{}{arg}, c.STACK...)
-		case O_POP:
+		case O_POP_LDA:
 			c.STACK_LEN--
 			c.REGS.LDA = (c.STACK[0]).(int)
+			c.STACK = c.STACK[1:]
+		case O_POP:
+			c.STACK_LEN--
+			c.MEM = append(c.MEM, (c.STACK[0]).(int))
 			c.STACK = c.STACK[1:]
 
 		// regs
@@ -240,10 +271,16 @@ func (c *Cpu) RunAsmCode() {
 		case O_INT2PRT:
 			if (OP.ArgType) { //mem
 				c.MEM = append(c.MEM, &(c.MEM[(OP.Arg).(int)]))
-			} else { // immd
-				//TODO
-				//get last ...arg... *
-				//c.MEM = append(c.MEM, &((OP.Arg).(int)))
+			} else {
+				fprintf(stderr, "can't cast immedeate int to pointer\n")
+				exit(1)
+			}
+		case O_PRT2INT:
+			if (OP.ArgType) { //mem
+				c.MEM = append(c.MEM, *(c.MEM[(OP.Arg).(int)]).(*interface{}))
+			} else {
+				exit(1)
+				fprintf(stderr, "can't cast immedeate pointer to int\n")
 			}
 
 		// debug
