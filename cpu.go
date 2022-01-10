@@ -250,7 +250,7 @@ func (c *Cpu) RunAsmCode() {
 		case O_DBGPRT:
 			c.Print()
 
-		// reader midway
+		// test helper
 		case I_MakeLabel:
 			c.LABELS[len(c.LABELS)] = (arg).(int)
 		default:
