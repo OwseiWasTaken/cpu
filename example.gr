@@ -1,0 +1,7 @@
+Data:
+	MEM 1
+Main:
+	INC [0]
+	WRITE [0]
+	WRITE "\n"
+	GOTO (Main)
