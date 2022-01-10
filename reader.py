@@ -86,30 +86,9 @@ def Main() -> int:
 		with open(filename, 'r') as f:
 			FILE = list(map(lambda x : TrimSpaces(x).replace("\t", "").replace('\n', ""), f.readlines()))
 	else:
-		# Op{I_MakeLabel, false, 5}, // 0
-		# // .text
-		# Op{O_JTL, false, 0},	   // 1 -> {0(5)}
-		# Op{O_MEM, false, 10},	   // 2
-		# Op{O_INT2PRT, true, 0},	 // 3
-		# Op{O_DBGPRT, false, 0},	 // 4
-		# Op{O_INC, true, 0},		   // 5
-		# // LABEL HERE (label.value = ctx.addr)
-		# Op{O_DBGPRT, false, 0},	 // 6
-		# Op{O_EXIT, false, 0},	   // 7
-		FILE = ["GOTO (jumper)", "MEM 10", "INT2PRT [0]", "DBGPRT", "INC [0]", "jumper:", "DBGPRT", "EXIT 0"]
+		fprintf(stderr, "reader.py didn't recieve any file to translate!\n")
+		exit(1)
 
-	TW = [
-		"Op{I_MakeLabel, false, 5}, // 0",
-		"// .text",
-		"Op{O_JTL, false, 0}, // 1 -> {0(5)}",
-		"Op{O_MEM, false, 10}, // 2",
-		"Op{O_INT2PRT, true, 0}, // 3",
-		"Op{O_DBGPRT, false, 0}, // 4",
-		"Op{O_INC, true, 0}, // 5",
-		"// Label jumper",
-		"Op{O_DBGPRT, false, 0}, // 6",
-		"Op{O_EXIT, false, 0}, // 7",
-	]
 	TW = []
 
 	# TODO
@@ -166,10 +145,10 @@ def Main() -> int:
 		ToFile = True
 
 	# write!
-	stream.write(gostart)
-	for op in ops:
-		stream.write(str(op)+"\n")
-	stream.write(goend)
+	stream.write(gotext % ('\n'.join([str(op) for op in ops])))
+	#for op in ops:
+	#	stream.write(str(op)+"\n")
+	#stream.write(goend)
 
 
 	if ToFile:
@@ -177,7 +156,7 @@ def Main() -> int:
 
 	return 0
 
-gostart = """
+gotext= """
 package main
 
 include "gutil"
@@ -186,11 +165,10 @@ include "cpu"
 // OWEN worker
 
 func main() {
-	InitRand()
-	InitGetCh()
-	var Code []Op = []Op{
-"""
-goend = """
+InitRand()
+InitGetCh()
+var Code []Op = []Op{
+%s
 }
 CPU.CODE = Code
 
