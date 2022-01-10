@@ -4,6 +4,12 @@ include "gutil"
 include "cpu"
 
 // OWEN worker
+// main.go is used to test cpu.go!
+// if you want to execute .gr files:
+//     $ reader.py (FILE.gr) -o (OUT.go)
+//     $ gc OUT.go
+//     $ ./OUT
+
 
 func main() {
 	InitRand()
