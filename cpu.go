@@ -1,4 +1,9 @@
-// lib for main
+// lib for test.go and main.py -> out.go
+
+// if you want to execute .gr files:
+//	   $ main.py (FILE.gr) -o (OUT.go)
+//	   $ gc OUT.go (gc so it includes this file and gutil)
+//	   $ ./OUT
 
 include "gutil"
 
@@ -19,10 +24,6 @@ type Regs struct {
 	LDC interface{} // converter
 }
 
-const (
-	MAX_STACK_LEN = 256-1 // -1 for cmp
-)
-
 type Cpu struct {
 	STACK []interface{}
 	MEM   []interface{}
@@ -39,6 +40,7 @@ type Cpu struct {
 }
 
 func MakeCpu() *Cpu {
+	InitConv()
 	return &Cpu{
 		[]interface{}{},
 		[]interface{}{},
@@ -107,6 +109,7 @@ func (c *Cpu) Print() {
 	printf("  LDX:%d\n", c.REGS.LDX)
 	printf("  LDH:%d\n", c.REGS.LDH)
 	printf("  LDS:%d\n", c.REGS.LDS)
+	printf("  LDC:`%v`\n", c.REGS.LDC)
 	printf("  LRI:\"%s\"\n", c.REGS.LRI)
 	print("}\n\n##########\n")
 }
@@ -123,8 +126,27 @@ func (c *Cpu) RunCode() {
 
 type Op struct {
 	Op int
-	ArgType bool // immd/addr
 	Arg interface{} // default 0
+	ArgType bool // immd/addr
+}
+
+func (c *Cpu) MakeOp(args... interface{}) Op {
+	if (len(args) == 3) {
+		return Op{(args[0]).(int), args[1], (args[2]).(bool)}
+	} else if (len(args) == 2) {
+		return Op{(args[0]).(int), args[1], false}
+	} else if (len(args) == 1) {
+		return Op{(args[0]).(int), 0, false}
+	} else if (len(args) == 4) {
+		c.REGS.LDA = (args[3]).(int)
+		return Op{(args[0]).(int), args[1], (args[2]).(bool)}
+	} else if (len(args) == 5) {
+		c.REGS.LDA = (args[3]).(int)
+		c.REGS.LDB = (args[4]).(int)
+		return Op{(args[0]).(int), args[1], (args[2]).(bool)}
+	} else {
+		return Op{O_EXIT, 0, false}
+	}
 }
 
 include "ops"
@@ -134,6 +156,7 @@ var sstreams map[int]string = map[int]string{
 	0:"stdout",
 	1:"stderr",
 }
+
 var streams map[int]*bufio.Writer = map[int]*bufio.Writer{
 	0:stdout,
 	1:stderr,
@@ -145,6 +168,29 @@ var fd *FILE
 var err error
 var arg interface{}
 var OP Op
+
+const (
+	C_INT_FLOAT = iota
+	C_FLOAT_INT = iota
+	C_ANY_STRING= iota
+)
+
+var converter = make(map[int]func(interface{}) interface{})
+
+
+func InitConv(){
+	converter[C_FLOAT_INT] = func (c interface{}) (interface{}) {
+		return interface{}(int((c).(float64)))
+	}
+
+	converter[C_ANY_STRING] = func (c interface{}) (interface{}) {
+		return interface{}(fs("%v", c))
+	}
+
+	converter[C_INT_FLOAT] = func (c interface{}) (interface{}) {
+		return interface{}(float64((c).(int)))
+	}
+}
 
 func (c *Cpu) AddLabel( line int ) {
 	c.LABELS[len(c.LABELS)] = line
@@ -162,6 +208,8 @@ func (c *Cpu) RunAsmCode() {
 
 	switch (OP.Op) {
 		// syscall
+		case O_WRITENL:
+			fprintf(streams[c.REGS.LDS], "\n")
 		case O_WRITE_LRI:
 			fprintf(streams[c.REGS.LDS], c.REGS.LRI)
 		case O_WRITE:
@@ -295,11 +343,17 @@ func (c *Cpu) RunAsmCode() {
 			if (OP.ArgType) { //mem
 				c.MEM = append(c.MEM, *(c.MEM[(OP.Arg).(int)]).(*interface{}))
 			} else {
-				exit(1)
 				fprintf(stderr, "can't cast immedeate pointer to int\n")
+				exit(1)
 			}
+
 		// extra
 		case O_NOP:
+		case O_LDC:
+			c.REGS.LDC = arg
+		case O_CONV:
+			c.STACK = append([]interface{}{converter[(arg).(int)](c.REGS.LDC)}, c.STACK...)
+
 
 		// debug
 		case O_DBGPRT:

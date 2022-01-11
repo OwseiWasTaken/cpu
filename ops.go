@@ -1,5 +1,8 @@
 
 const (
+	// exit
+	O_EXIT	 =	iota
+
 	// stack (+LDA)
 	O_POP_LDA = iota
 	O_POP_LDB = iota
@@ -22,10 +25,10 @@ const (
 
 	// syscall (+LDS)
 	O_WRITE  =	iota
+	O_WRITENL = iota
 	O_WRITE_LRI=iota
 	O_WRITE_LRA=iota
 	O_FLUSH  =	iota
-	O_EXIT	 =	iota
 
 	// math (+LDB)
 	O_RADD	 =	iota
@@ -69,6 +72,8 @@ const (
 	I_MakeLabel=iota
 
 	// extra
+	O_LDC  = iota
+	O_CONV = iota
 	O_NOP  = iota
 	OP_LEN = iota
 )
