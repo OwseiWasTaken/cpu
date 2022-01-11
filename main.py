@@ -79,6 +79,8 @@ OPS = {
 	"I_MakeLabel":iota(),
 
 	# extra
+	"LDC" : iota(),
+	"CONV": iota(),
 	"NOP" : iota(),
 	"OP_LEN" : iota(),
 }
