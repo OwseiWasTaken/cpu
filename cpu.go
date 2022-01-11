@@ -151,7 +151,7 @@ func (c *Cpu) AddLabel( line int ) {
 }
 
 //TODO:
-//  use E_ stuff
+//	use E_ stuff
 func (c *Cpu) RunAsmCode() {
 	OP = c.CODE[c.ADDR] // Op struct
 	arg = OP.Arg
@@ -186,9 +186,16 @@ func (c *Cpu) RunAsmCode() {
 		case O_PUSH:
 			c.STACK_LEN++
 			c.STACK = append([]interface{}{arg}, c.STACK...)
+		case O_PUSH_LRA:
+			c.STACK_LEN++
+			c.STACK = append([]interface{}{interface{}((c.REGS.LRA))}, c.STACK...)
 		case O_POP_LDA:
 			c.STACK_LEN--
 			c.REGS.LDA = (c.STACK[0]).(int)
+			c.STACK = c.STACK[1:]
+		case O_POP_LDB:
+			c.STACK_LEN--
+			c.REGS.LDB = (c.STACK[0]).(int)
 			c.STACK = c.STACK[1:]
 		case O_POP:
 			c.STACK_LEN--
@@ -212,6 +219,14 @@ func (c *Cpu) RunAsmCode() {
 			c.REGS.LDA = c.ACC
 
 		// math
+		case O_RADD:
+			c.REGS.LRA = c.REGS.LDB+c.REGS.LDA
+		case O_RSUB:
+			c.REGS.LRA = c.REGS.LDB-c.REGS.LDA
+		case O_RMUL:
+			c.REGS.LRA = c.REGS.LDB*c.REGS.LDA
+		case O_RDIV:
+			c.REGS.LRA = c.REGS.LDB/c.REGS.LDA
 		case O_ADD:
 			c.REGS.LRA = c.REGS.LDB+(arg).(int)
 		case O_SUB:

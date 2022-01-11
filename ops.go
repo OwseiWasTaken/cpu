@@ -1,9 +1,11 @@
 
 const (
 	// stack (+LDA)
-	O_POP_LDA=  iota
-	O_POP	 =	iota
-	O_PUSH	 =	iota
+	O_POP_LDA = iota
+	O_POP_LDB = iota
+	O_POP	  = iota
+	O_PUSH	  = iota
+	O_PUSH_LRA= iota
 
 	// IOStream (+LDS)
 	O_OPEN	 =	iota
@@ -25,6 +27,11 @@ const (
 	O_EXIT	 =	iota
 
 	// math (+LDB)
+	O_RADD	 =	iota
+	O_RSUB	 =	iota
+	O_RMUL	 =	iota
+	O_RDIV	 =	iota
+	O_RMOD	 =	iota
 	O_ADD	 =	iota
 	O_SUB	 =	iota
 	O_MUL	 =	iota
