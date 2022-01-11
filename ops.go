@@ -23,6 +23,7 @@ const (
 	// syscall (+LDS)
 	O_WRITE  =	iota
 	O_WRITE_LRI=iota
+	O_WRITE_LRA=iota
 	O_FLUSH  =	iota
 	O_EXIT	 =	iota
 
@@ -42,8 +43,6 @@ const (
 	O_RRAND  =	iota
 
 	// mem (+LDA +LRA)
-	O_LDA2MEM=	iota
-	O_LDMEM  =	iota
 	O_LRA2MEM=	iota
 	O_MEM	 =	iota
 	O_MEMDEL =	iota
@@ -70,5 +69,6 @@ const (
 	I_MakeLabel=iota
 
 	// extra
+	O_NOP  = iota
 	OP_LEN = iota
 )

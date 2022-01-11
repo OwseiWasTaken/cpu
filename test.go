@@ -15,19 +15,15 @@ func main() {
 	InitRand()
 	InitGetCh()
 	CPU.CODE = []Op{
-		// make out.txt file (if ArgType was true, LDS would be set to out.txt)
-		Op{O_OPEN, false, "out.txt"},
-
-		// set stream to out.txt
-		Op{O_LDS, false, 2},
-
-		// write "poggers\n" to out.txt stream
-		Op{O_WRITE, false, "poggers\n"},
-
-		// flush out.txt stream
-		Op{O_FLUSH, false, 0},
-
-		Op{O_EXIT, false, 0}, // -1
+		Op{O_LDA, false, 0},// 0
+		Op{O_LDB, false, 10},// 1
+		Op{O_NOP, false, 0},// 2
+		Op{O_DBGPRT, false, 0},
+		Op{O_RRAND, false, 0},// 3
+		Op{O_WRITE_LRA, false, 0},// 4
+		Op{O_WRITE, false, "\n"},// 5
+		Op{O_GOTO, false, 2},// 6 -> (Main)=2
+		Op{O_EXIT, false, 0},// 7
 	}
 	printf("%d ops\n", OP_LEN)
 

@@ -151,6 +151,7 @@ func (c *Cpu) AddLabel( line int ) {
 }
 
 //TODO:
+//	use more than one immd
 //	use E_ stuff
 func (c *Cpu) RunAsmCode() {
 	OP = c.CODE[c.ADDR] // Op struct
@@ -164,7 +165,9 @@ func (c *Cpu) RunAsmCode() {
 		case O_WRITE_LRI:
 			fprintf(streams[c.REGS.LDS], c.REGS.LRI)
 		case O_WRITE:
-			fprintf(streams[c.REGS.LDS], fs("%v", arg))
+			fprintf(streams[c.REGS.LDS], "%v", arg)
+		case O_WRITE_LRA:
+			fprintf(streams[c.REGS.LDS], "%d", c.REGS.LRA)
 		case O_FLUSH:
 			streams[c.REGS.LDS].Flush()
 		case O_OPEN:
@@ -255,8 +258,6 @@ func (c *Cpu) RunAsmCode() {
 			c.MEM = append(c.MEM, arg)
 		case O_MEMDEL:
 			c.MEM = append(c.MEM[:(arg).(int)], c.MEM[(arg).(int)+1:]...)
-		case O_LDA2MEM:
-			c.MEM = append(c.MEM, c.REGS.LDA)
 		case O_LRA2MEM:
 			c.MEM = append(c.MEM, c.REGS.LRA)
 
@@ -282,7 +283,7 @@ func (c *Cpu) RunAsmCode() {
 		case O_JTL_lDH:
 			c.ADDR = c.LABELS[c.REGS.LDH]
 
-		// extra
+		// *&
 		case O_INT2PRT:
 			if (OP.ArgType) { //mem
 				c.MEM = append(c.MEM, &(c.MEM[(OP.Arg).(int)]))
@@ -297,6 +298,8 @@ func (c *Cpu) RunAsmCode() {
 				exit(1)
 				fprintf(stderr, "can't cast immedeate pointer to int\n")
 			}
+		// extra
+		case O_NOP:
 
 		// debug
 		case O_DBGPRT:

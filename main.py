@@ -3,70 +3,89 @@
 from util import *
 import subprocess
 
-class _Enum:
-	def __init__(this):
-		this.I= -1
-	@property
-	def iota(this):
-		this.I+=1
-		return this.I
-Enum = _Enum()
+I = 0
+def iota():
+	global I
+	I+=1
+	return I
 
 OPS = {
 	# stack (+LDA)
-	"POP"	 :	Enum.iota,
-	"PUSH"	 :	Enum.iota,
+	"POP_LDA": iota(),
+	"POP_LDB": iota(),
+	"POP" : iota(),
+	"PUSH" : iota(),
+	"PUSH_LRA": iota(),
+
 	# IOStream (+LDS)
-	"OPEN"	 :	Enum.iota,
-	"CLOSE"  :	Enum.iota,
+	"OPEN"	 :	iota(),
+	"CLOSE"  :	iota(),
+
 	# regs (+ACC)
-	"LRI"	 :	Enum.iota,
-	"LDA"	 :	Enum.iota,
-	"LDB"	 :	Enum.iota,
-	"LDS"	 :	Enum.iota,
-	"LDX"	 :	Enum.iota,
-	"LDH"	 :	Enum.iota,
-	"ACC2LDA":	Enum.iota,
+	"LRI"	 :	iota(),
+	"LDA"	 :	iota(),
+	"LDB"	 :	iota(),
+	"LDS"	 :	iota(),
+	"LDX"	 :	iota(),
+	"LDH"	 :	iota(),
+	"ACC2LDA":	iota(),
+
 	# syscall (+LDS)
-	"WRITE"  :	Enum.iota,
-	"WRITE_LRI":Enum.iota,
-	"FLUSH"  :	Enum.iota,
-	"EXIT"	 :	Enum.iota,
+	"WRITE"  :	iota(),
+	"WRITE_LRI":iota(),
+	"WRITE_LRA":iota(),
+	"FLUSH"  :	iota(),
+	"EXIT"	 :	iota(),
+
 	# math (+LDB)
-	"ADD"	 :	Enum.iota,
-	"SUB"	 :	Enum.iota,
-	"MUL"	 :	Enum.iota,
-	"DIV"	 :	Enum.iota,
-	"MOD"	 :	Enum.iota,
-	"INC"	 :	Enum.iota,
-	"RAND"	 :	Enum.iota,
-	"RRAND"  :	Enum.iota,
+	"RADD"	 :	iota(),
+	"RSUB"	 :	iota(),
+	"RMUL"	 :	iota(),
+	"RDIV"	 :	iota(),
+	"RMOD"	 :	iota(),
+	"ADD"	 :	iota(),
+	"SUB"	 :	iota(),
+	"MUL"	 :	iota(),
+	"DIV"	 :	iota(),
+	"MOD"	 :	iota(),
+	"INC"	 :	iota(),
+	"RAND"	 :	iota(),
+	"RRAND"  :	iota(),
+
 	# mem (+LDA +LRA)
-	"LDA2MEM":	Enum.iota,
-	"LDMEM"  :	Enum.iota,
-	"LRA2MEM":	Enum.iota,
-	"MEM"	 :	Enum.iota,
-	"MEMDEL" :	Enum.iota,
+	"LRA2MEM":	iota(),
+	"MEM"	 :	iota(),
+	"MEMDEL" :	iota(),
+
 	# branch
-	"CMP"	 :	Enum.iota,
-	"GOTO_LDX": Enum.iota,
-	"GOTO_LDH": Enum.iota,
-	"GOTO"	 :	Enum.iota,
-	"RGOTO"  :	Enum.iota,
-	"JTL"	 :	Enum.iota,
-	"JIT"	 :	Enum.iota,
-	"JTL_lDX":	Enum.iota,
-	"JTL_lDH":	Enum.iota,
+	"CMP"	 :	iota(),
+	"GOTO_LDX": iota(),
+	"GOTO_LDH": iota(),
+	"GOTO"	 :	iota(),
+	"RGOTO"  :	iota(),
+	"JTL"	 :	iota(),
+	"JIT"	 :	iota(),
+	"JTL_lDX":	iota(),
+	"JTL_lDH":	iota(),
+
 	# debug
-	"DBGPRT" :	Enum.iota,
-	# &*
-	"INT2PRT" : Enum.iota,
-	# reader
-	"I_MakeLabel":Enum.iota,
+	"DBGPRT" :	iota(),
+
+	# *&
+	"INT2PRT" : iota(),
+	"PRT2INT" : iota(),
+
+	# test helper
+	"I_MakeLabel":iota(),
+
 	# extra
-	"_LEN" : Enum.iota,
+	"NOP" : iota(),
+	"OP_LEN" : iota(),
 }
-# TODO make REGS op when (ldx)
+
+# TODO make REGS op when {lda}?
+
+#Op Index To Name
 OITN = {v:k for k, v in OPS.items()}
 
 class Op:
@@ -159,7 +178,6 @@ def Main() -> int:
 gotext= """
 package main
 
-include "gutil"
 include "cpu"
 
 // OWEN worker
@@ -174,7 +192,6 @@ CPU.CODE = []Op{
 for {
 CPU.NextTick()
 }
-exit(0)
 }
 """
 

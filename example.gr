@@ -1,7 +1,10 @@
 Data:
-	MEM 1
+	LDA 0
+	LDB 10
 Main:
-	INC [0]
-	WRITE [0]
+	NOP
+	RRAND
+	WRITE_LRA
 	WRITE "\n"
 	GOTO (Main)
+	EXIT
